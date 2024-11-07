@@ -163,7 +163,7 @@ class WrestlingMatchUpApp:
 
     def create_fixed_matchups(self):
         if self.home_wrestlers_data is not None and self.away_wrestlers_data is not None:
-            weight_classes = [0, 50, 60, 70, 80, 90, 100, 200]
+            weight_classes = [0, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200]
             self.matchups = fixed_weight_classes_matchup(self.home_wrestlers_data, self.away_wrestlers_data, weight_classes)
             self.status_label.config(text="Created mixed match-ups.")
             messagebox.showinfo("Match-Ups Created", "Mixed match-ups created.")
@@ -182,11 +182,14 @@ class WrestlingMatchUpApp:
         if self.matchups:
             self.exported_file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel Files", "*.xlsx")])
             if self.exported_file_path:
-                export_to_excel(self.exported_file_path, self.matchups)
+                export_to_excel(self.matchups, self.exported_file_path)  # Use correct args
                 self.status_label.config(text="Match-ups exported successfully!")
                 messagebox.showinfo("Exported", "Match-ups exported to Excel.")
+            else:
+                messagebox.showerror("Error", "No file selected for export.")
         else:
             messagebox.showerror("Error", "No match-ups to export. Please create match-ups first.")
+
 
     def show_exported_file(self):
         if self.exported_file_path and os.path.exists(self.exported_file_path):
@@ -195,21 +198,15 @@ class WrestlingMatchUpApp:
             messagebox.showerror("Error", "No exported file found. Please export match-ups first.")
 
     def print_exported_file(self):
-        if self.exported_file_path:
+        if self.exported_file_path and os.path.exists(self.exported_file_path):
             try:
-                # Check if the exported file exists
-                if not os.path.exists(self.exported_file_path):
-                    messagebox.showerror("Print Error", "Exported file not found.")
-                    return
-                
-                # Open the print dialog (which allows user to choose a printer or save as PDF)
                 win32api.ShellExecute(0, "print", self.exported_file_path, None, ".", 0)
                 messagebox.showinfo("Print", "Print dialog opened. Please select a printer or save as PDF.")
-            
             except Exception as e:
                 messagebox.showerror("Print Error", f"An error occurred while opening the print dialog: {e}")
         else:
             messagebox.showerror("Print Error", "No exported file found. Please export match-ups first.")
+
 
 
 if __name__ == "__main__":

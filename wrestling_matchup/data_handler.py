@@ -1,6 +1,6 @@
-# wrestling_matchup/data_handler.py
 import pandas as pd
 import os
+import numpy as np
 
 def import_data(file_path):
     if not os.path.isfile(file_path):
@@ -16,25 +16,40 @@ def import_data(file_path):
             print("Error: Unsupported file type. Please provide a .xlsx or .csv file.")
             return None
 
-        df.columns = df.columns.str.lower()
+        # Lowercase column names and strip spaces to ensure uniformity
+        df.columns = df.columns.str.lower().str.strip()
         
-        required_columns = ['name', 'weight', 'age', 'experience']
+        # Required columns, where "experience" is optional
+        required_columns = ['name', 'weight', 'age']
+        optional_columns = ['experience']
         
-        # Select only the required columns if they exist in the file
-        df = df[[col for col in required_columns if col in df.columns]]
-        
-        # print a message if any required column is missing
+        # Check if the required columns exist, and only add existing optional columns
         missing_columns = [col for col in required_columns if col not in df.columns]
         if missing_columns:
-            print(f"Warning: Missing columns - {', '.join(missing_columns)}. These columns will be ignored.")
+            print(f"Error: Missing columns - {', '.join(missing_columns)}. These columns are required for accurate match-ups.")
+            return None
 
-        print("Data imported successfully!")
+        # Keep only relevant columns and handle optional columns
+        columns_to_keep = [col for col in required_columns + optional_columns if col in df.columns]
+        df = df[columns_to_keep]
+        
+        # Replace zeros with NaN in the relevant columns (weight, age, experience)
+        numeric_columns = ['weight', 'age', 'experience']
+        for col in numeric_columns:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert non-numeric values to NaN
+                df[col] = df[col].replace(0, np.nan)  # Replace zeros with NaN
+                df[col] = df[col].fillna(np.nan)  # Ensure NaN values persist
+
+        # Filter out rows where any numeric column is NaN
+        df = df.dropna(subset=['weight', 'age', 'experience'])
+
+        print("Data imported and cleaned successfully!")
         return df
     
     except Exception as e:
         print(f"Error importing data: {e}")
         return None
-
 
 def export_to_excel(matchups, file_name):
     try:
@@ -51,7 +66,8 @@ def export_to_excel(matchups, file_name):
             green_format = workbook.add_format({'bg_color': 'green', 'font_color': 'white'})
             red_format = workbook.add_format({'bg_color': 'red', 'font_color': 'white'})
 
-            # Apply conditional formatting
+            # Apply conditional formatting for matchups (example: based on weight or other criteria)
+            # Here, it's assumed that matchups are represented as a comparison of weight
             worksheet.conditional_format('A2:B100', {
                 'type': 'cell',
                 'criteria': '==',
