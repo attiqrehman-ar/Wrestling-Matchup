@@ -20,8 +20,3 @@ Before running the application, ensure that the following Python libraries are i
 - `pywin32` (for printer functions on Windows)
 - `pandas` (for data manipulation)
 - `xlsxwriter` (for exporting data to Excel)
-
-### To install dependencies:
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/attiqrehman-ar/Wrestling-Matchup.git
