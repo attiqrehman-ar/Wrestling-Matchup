@@ -163,7 +163,7 @@ class WrestlingMatchUpApp:
 
     def create_fixed_matchups(self):
         if self.home_wrestlers_data is not None and self.away_wrestlers_data is not None:
-            weight_classes = [0, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200]
+            weight_classes = [0,20, 30,35, 40, 45, 50, 55, 60,65, 70, 75,80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135,140, 145, 150, 155 ,160,165,  170,175, 180,185, 190, 200 ]
             self.matchups = fixed_weight_classes_matchup(self.home_wrestlers_data, self.away_wrestlers_data, weight_classes)
             self.status_label.config(text="Created mixed match-ups.")
             messagebox.showinfo("Match-Ups Created", "Mixed match-ups created.")
@@ -208,7 +208,7 @@ class WrestlingMatchUpApp:
             messagebox.showerror("Print Error", "No exported file found. Please export match-ups first.")
 
 
-
+ 
 if __name__ == "__main__":
     root = tk.Tk()
     app = WrestlingMatchUpApp(root)
