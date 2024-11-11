@@ -1,5 +1,7 @@
-import pandas as pd
+# data_handler.py
+
 import os
+import pandas as pd
 import numpy as np
 
 def import_data(file_path):
@@ -8,6 +10,7 @@ def import_data(file_path):
         return None
 
     try:
+        # Import file based on extension
         if file_path.endswith('.xlsx'):
             df = pd.read_excel(file_path)
         elif file_path.endswith('.csv'):
@@ -16,40 +19,38 @@ def import_data(file_path):
             print("Error: Unsupported file type. Please provide a .xlsx or .csv file.")
             return None
 
-        # Lowercase column names and strip spaces to ensure uniformity
+        # Normalize column names to lowercase and remove leading/trailing spaces
         df.columns = df.columns.str.lower().str.strip()
-        
-        # Required columns, where "experience" is optional
-        required_columns = ['name', 'weight', 'age']
-        optional_columns = ['experience']
-        
-        # Check if the required columns exist, and only add existing optional columns
+
+        # Required columns with 'experience' made mandatory
+        required_columns = ['name', 'weight', 'age', 'experience']
+
+        # Check if all required columns exist
         missing_columns = [col for col in required_columns if col not in df.columns]
         if missing_columns:
             print(f"Error: Missing columns - {', '.join(missing_columns)}. These columns are required for accurate match-ups.")
             return None
 
-        # Keep only relevant columns and handle optional columns
-        columns_to_keep = [col for col in required_columns + optional_columns if col in df.columns]
-        df = df[columns_to_keep]
-        
-        # Replace zeros with NaN in the relevant columns (weight, age, experience)
+        # Keep only the required columns
+        df = df[required_columns]
+
+        # Convert columns to numeric and replace zeros with NaN
         numeric_columns = ['weight', 'age', 'experience']
         for col in numeric_columns:
             if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert non-numeric values to NaN
-                df[col] = df[col].replace(0, np.nan)  # Replace zeros with NaN
-                df[col] = df[col].fillna(np.nan)  # Ensure NaN values persist
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+                df[col] = df[col].replace(0, np.nan)
 
-        # Filter out rows where any numeric column is NaN
-        df = df.dropna(subset=['weight', 'age', 'experience'])
+        # Drop rows with NaN in any required column
+        df = df.dropna(subset=required_columns)
 
         print("Data imported and cleaned successfully!")
         return df
-    
+
     except Exception as e:
         print(f"Error importing data: {e}")
         return None
+
 
 def export_to_excel(matchups, file_name):
     try:

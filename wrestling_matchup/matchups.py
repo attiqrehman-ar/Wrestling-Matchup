@@ -7,37 +7,55 @@ def fixed_weight_classes_matchup(home_wrestlers, away_wrestlers, weight_classes)
     MAX_AGE_DIFF = 3      # Max age difference allowed (in years)
     MAX_WEIGHT_DIFF = 3   # Max weight difference allowed (in kg)
     
-    # Iterate over DataFrame rows using iterrows
+    # Function to determine the weight class based on weight
+    def get_weight_class(weight):
+        for i in range(len(weight_classes) - 1):
+            if weight_classes[i] <= weight < weight_classes[i + 1]:
+                return i
+        return None  # Return None if no weight class fits
+
+    # Assign weight classes to each wrestler
+    home_wrestlers['weight_class'] = home_wrestlers['weight'].apply(get_weight_class)
+    away_wrestlers['weight_class'] = away_wrestlers['weight'].apply(get_weight_class)
+    
+    # Iterate over each wrestler in home_wrestlers
     for _, home_wrestler in home_wrestlers.iterrows():
+        home_weight_class = home_wrestler['weight_class']
+        if home_weight_class is None:
+            continue  # Skip if the wrestler does not fit in any weight class
+        
         closest_match = None
         min_weight_diff = float('inf')
         min_age_diff = float('inf')
         
+        # Find matches within the same weight class or adjacent classes
         for _, away_wrestler in away_wrestlers.iterrows():
+            away_weight_class = away_wrestler['weight_class']
+            if away_weight_class is None or abs(home_weight_class - away_weight_class) > 1:
+                continue  # Skip if not in the same or adjacent weight class
+            
             weight_diff = abs(home_wrestler['weight'] - away_wrestler['weight'])
             age_diff = abs(home_wrestler['age'] - away_wrestler['age'])
             exp_diff = abs(home_wrestler.get('experience', 0) - away_wrestler.get('experience', 0))
             
-            # Skip matchups with age differences greater than the allowed limit
+            # Skip matchups with age differences or weight differences greater than allowed limits
             if age_diff > MAX_AGE_DIFF or weight_diff > MAX_WEIGHT_DIFF:
                 continue
             
-            # Prioritize weight closeness, followed by age (within max allowed difference), and then experience
+            # Prioritize weight closeness, followed by age and experience
             if (weight_diff < min_weight_diff) or \
                (weight_diff == min_weight_diff and age_diff < min_age_diff) or \
                (weight_diff == min_weight_diff and age_diff == min_age_diff and exp_diff < exp_diff):
                 min_weight_diff = weight_diff
                 min_age_diff = age_diff
                 closest_match = away_wrestler
-        
+
         # Add to matchups if a suitable match was found
         if closest_match is not None:
             matchups.append((home_wrestler['name'], closest_match['name']))
             away_wrestlers = away_wrestlers[away_wrestlers['name'] != closest_match['name']]  # Remove matched wrestler
 
     return matchups
-
-
 
 def maddison_system_matchup(home_df, away_df, max_weight_diff=5):
     # Sort by weight for the Madison system
